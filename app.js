@@ -1,5 +1,3 @@
-import { mediaGrantForPage } from "./element-media.js";
-import { describeEnvironment } from "./media-errors.js";
 import { createMediaSession } from "./media-session.js";
 
 const REQUESTS = {
@@ -15,7 +13,6 @@ const tracksNode = document.querySelector("#tracks");
 const previewNode = document.querySelector("#preview");
 const meterNode = document.querySelector("#meter");
 const meterBarNode = document.querySelector("#meter-bar");
-const environmentNode = document.querySelector("#environment");
 const startButtons = [...document.querySelectorAll("[data-request]")];
 const stopButton = document.querySelector("#stop");
 
@@ -121,58 +118,6 @@ function resetDisplay() {
   setBusy(false);
 }
 
-function renderEnvironment(grant = mediaGrantForPage(null, location.href)) {
-  const environment = describeEnvironment({
-    origin: window.origin || location.origin,
-    secureContext: window.isSecureContext === true,
-    mediaDevicesAvailable: typeof navigator.mediaDevices?.getUserMedia === "function",
-    cameraAllowed: grant.camera,
-    microphoneAllowed: grant.microphone,
-  });
-  environmentNode.textContent = [
-    `Origin: ${environment.origin}`,
-    `Secure context: ${environment.secureContext}`,
-    `getUserMedia available: ${environment.mediaDevicesAvailable}`,
-    `Element camera: ${environment.cameraAllowed}`,
-    `Element microphone: ${environment.microphoneAllowed}`,
-  ].join("\n");
-}
-
-function requestElementMediaGrant() {
-  if (window.parent === window) {
-    return Promise.resolve(mediaGrantForPage(null, location.href));
-  }
-
-  return new Promise((resolve) => {
-    const requestId = crypto.randomUUID();
-    const timer = window.setTimeout(finish, 3000);
-
-    function finish(grant) {
-      window.clearTimeout(timer);
-      window.removeEventListener("message", onMessage);
-      resolve(grant ?? mediaGrantForPage(null, location.href));
-    }
-
-    function onMessage(event) {
-      if (event.source !== window.parent) {
-        return;
-      }
-      const data = event.data;
-      if (!data || data.type !== "api-response" || data.requestId !== requestId || data.success !== true) {
-        return;
-      }
-      const elements = data.data?.infinityElements;
-      finish(mediaGrantForPage(elements, location.href));
-    }
-
-    window.addEventListener("message", onMessage);
-    window.parent.postMessage(
-      { type: "api-request", requestId, method: "getUserInfo", params: {} },
-      "*",
-    );
-  });
-}
-
 async function start(requestName) {
   setBusy(true);
   setFailure(null);
@@ -217,10 +162,6 @@ for (const button of startButtons) {
 stopButton.addEventListener("click", stop);
 window.addEventListener("pagehide", stop);
 
-renderEnvironment();
-requestElementMediaGrant().then((grant) => {
-  renderEnvironment(grant);
-});
 renderTracks(null);
 setStatus("Idle. Camera and microphone have not been requested.");
 setFailure(null);

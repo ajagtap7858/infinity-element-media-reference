@@ -22,7 +22,7 @@ The Pages URL is the remote Element URL. Do not append query parameters that con
 4. Confirm the preview and microphone level, then choose **Stop** and confirm the tracks end.
 5. Turn the administrator setting off and load the Element again. Start must show the not-permitted message.
 
-The environment panel shows the page origin and the saved Element setting. Camera and microphone stay off until this Element's `cameraMicrophoneEnabled` value is true. Opening the GitHub page directly has no Element configuration, so both stay off.
+The page does not display a permission or environment summary. Camera and microphone are requested only after Start.
 
 ## Local check
 

@@ -116,16 +116,6 @@ dd {
   margin: 2px 0 0;
 }
 
-pre {
-  margin: 0;
-  padding: 12px;
-  overflow: auto;
-  white-space: pre-wrap;
-  background: #fff;
-  border: 1px solid #d9e2ec;
-  border-radius: 4px;
-}
-
 @media (prefers-reduced-motion: reduce) {
   #meter-bar {
     transition: none;
