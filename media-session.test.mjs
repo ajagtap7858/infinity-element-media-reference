@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { mediaGrantForPage, mediaGrantFromElementConfig } from "./element-media.js";
 import { classifyMediaFailure, describeEnvironment, readPermission } from "./media-errors.js";
 import { createMediaSession } from "./media-session.js";
 
@@ -136,6 +137,47 @@ test("opaque origins are labeled without exposing a URL", () => {
     microphoneAllowed: "blocked",
   });
   assert.equal(environment.origin, "opaque (null)");
+});
+
+test("a missing Element setting stays off", () => {
+  assert.deepEqual(mediaGrantFromElementConfig(null), {
+    camera: "off",
+    microphone: "off",
+  });
+  assert.deepEqual(
+    mediaGrantFromElementConfig({
+      hostingType: "remote",
+      remoteUrl: "https://example.github.io/element/",
+      sameOriginEnabled: true,
+    }),
+    { camera: "off", microphone: "off" },
+  );
+});
+
+test("the saved Element flag enables camera and microphone together", () => {
+  const page = "https://ajagtap7858.github.io/infinity-element-media-reference/";
+  const elements = [
+    {
+      config: {
+        hostingType: "remote",
+        remoteUrl: "https://other.example/element",
+        cameraMicrophoneEnabled: true,
+      },
+    },
+    {
+      config: {
+        hostingType: "remote",
+        remoteUrl: page,
+        sameOriginEnabled: true,
+        cameraMicrophoneEnabled: true,
+      },
+    },
+  ];
+
+  assert.deepEqual(mediaGrantForPage(elements, `${page}?unused=1`), {
+    camera: "on",
+    microphone: "on",
+  });
 });
 
 test("permission policy reads are defensive", () => {

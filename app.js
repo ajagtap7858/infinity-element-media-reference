@@ -1,4 +1,5 @@
-import { describeEnvironment, readPermission } from "./media-errors.js";
+import { mediaGrantForPage } from "./element-media.js";
+import { describeEnvironment } from "./media-errors.js";
 import { createMediaSession } from "./media-session.js";
 
 const REQUESTS = {
@@ -120,22 +121,56 @@ function resetDisplay() {
   setBusy(false);
 }
 
-function renderEnvironment() {
-  const policy = document.permissionsPolicy || document.featurePolicy;
+function renderEnvironment(grant = mediaGrantForPage(null, location.href)) {
   const environment = describeEnvironment({
     origin: window.origin || location.origin,
     secureContext: window.isSecureContext === true,
     mediaDevicesAvailable: typeof navigator.mediaDevices?.getUserMedia === "function",
-    cameraAllowed: readPermission(policy, "camera"),
-    microphoneAllowed: readPermission(policy, "microphone"),
+    cameraAllowed: grant.camera,
+    microphoneAllowed: grant.microphone,
   });
   environmentNode.textContent = [
     `Origin: ${environment.origin}`,
     `Secure context: ${environment.secureContext}`,
     `getUserMedia available: ${environment.mediaDevicesAvailable}`,
-    `Permissions Policy camera: ${environment.cameraAllowed}`,
-    `Permissions Policy microphone: ${environment.microphoneAllowed}`,
+    `Element camera: ${environment.cameraAllowed}`,
+    `Element microphone: ${environment.microphoneAllowed}`,
   ].join("\n");
+}
+
+function requestElementMediaGrant() {
+  if (window.parent === window) {
+    return Promise.resolve(mediaGrantForPage(null, location.href));
+  }
+
+  return new Promise((resolve) => {
+    const requestId = crypto.randomUUID();
+    const timer = window.setTimeout(finish, 3000);
+
+    function finish(grant) {
+      window.clearTimeout(timer);
+      window.removeEventListener("message", onMessage);
+      resolve(grant ?? mediaGrantForPage(null, location.href));
+    }
+
+    function onMessage(event) {
+      if (event.source !== window.parent) {
+        return;
+      }
+      const data = event.data;
+      if (!data || data.type !== "api-response" || data.requestId !== requestId || data.success !== true) {
+        return;
+      }
+      const elements = data.data?.infinityElements;
+      finish(mediaGrantForPage(elements, location.href));
+    }
+
+    window.addEventListener("message", onMessage);
+    window.parent.postMessage(
+      { type: "api-request", requestId, method: "getUserInfo", params: {} },
+      "*",
+    );
+  });
 }
 
 async function start(requestName) {
@@ -183,6 +218,9 @@ stopButton.addEventListener("click", stop);
 window.addEventListener("pagehide", stop);
 
 renderEnvironment();
+requestElementMediaGrant().then((grant) => {
+  renderEnvironment(grant);
+});
 renderTracks(null);
 setStatus("Idle. Camera and microphone have not been requested.");
 setFailure(null);
