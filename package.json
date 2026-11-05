@@ -1,0 +1,8 @@
+{
+  "name": "infinity-element-media-access-reference",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test"
+  }
+}

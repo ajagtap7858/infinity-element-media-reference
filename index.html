@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="referrer" content="no-referrer" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; img-src 'self' data:; media-src 'self' blob:; style-src 'self'; script-src 'self'; connect-src 'none'; base-uri 'none'; form-action 'none'"
+    />
+    <title>Infinity Element media access reference</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>Media access reference</h1>
+        <p>
+          URL-hosted Infinity Element probe for camera and microphone delegation.
+          This page does not request media until you choose Start.
+        </p>
+      </header>
+
+      <section class="controls" aria-label="Media controls">
+        <button type="button" id="start-both" data-request="both">
+          Start camera and microphone
+        </button>
+        <button type="button" id="start-camera" data-request="camera">
+          Start camera
+        </button>
+        <button type="button" id="start-microphone" data-request="microphone">
+          Start microphone
+        </button>
+        <button type="button" id="stop">Stop</button>
+      </section>
+
+      <p id="status" role="status" aria-live="polite"></p>
+      <p id="failure" role="alert"></p>
+
+      <video id="preview" hidden autoplay muted playsinline></video>
+      <div id="meter" class="meter" hidden>
+        <span>Microphone level</span>
+        <div class="meter-track" aria-hidden="true">
+          <div id="meter-bar"></div>
+        </div>
+      </div>
+
+      <dl class="facts">
+        <div>
+          <dt>Browser result</dt>
+          <dd id="browser-result">none</dd>
+        </div>
+        <div>
+          <dt>Active tracks</dt>
+          <dd id="tracks">No active tracks.</dd>
+        </div>
+      </dl>
+
+      <pre id="environment" aria-label="Page environment"></pre>
+    </main>
+    <script type="module" src="app.js"></script>
+  </body>
+</html>
